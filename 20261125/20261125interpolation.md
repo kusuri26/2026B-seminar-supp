@@ -1,16 +1,8 @@
-<style>
-h1 { counter-reset: h2; }
-h2 { counter-increment: h2; counter-reset: h3; }
-h3 { counter-increment: h3; }
-h2::before { content: counter(h2) ". "; }
-h3::before { content: counter(h2) "." counter(h3) ". "; }
-</style>
-
 # Interpolation: Polynomial, Lagrange, Newton, Hermite and Taylor
 
 **Summary.** Polynomial interpolation has one answer: a unique polynomial of degree at most $n$ through $n+1$ points. The monomial (Vandermonde), Lagrange and Newton forms are three ways of writing it. Hermite interpolation also matches derivatives (repeated nodes), and the Taylor polynomial is the extreme case where all conditions are placed at a single point.
 
-## Interpolation
+## 1. Interpolation
 
 Given points $(x_0, y_0), \dots, (x_n, y_n)$ with distinct $x_i$, find a function $p$ that passes **exactly** through them:
 
@@ -21,11 +13,11 @@ $$
 - **Interpolation** is for exact data (tabulated or computed values of a function).
 - **Regression / smoothing** is for noisy data: it only approximates the points. A smoothing spline with $\lambda = 0$ is an interpolant.
 
-## Polynomial interpolation
+## 2. Polynomial interpolation
 
 For $n + 1$ distinct nodes there is **exactly one** polynomial of degree at most $n$ through them (proved in 2.1). Sections 2.1–2.3 write this one polynomial in three bases; 2.4–2.5 add derivative conditions.
 
-### The Vandermonde system
+### 2.1. The Vandermonde system
 
 Write $p(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_n x^n$. Each condition $p(x_i) = y_i$ is a **linear** equation in the unknowns $a_0, \dots, a_n$ (the powers $x_i^k$ are known numbers):
 
@@ -55,12 +47,12 @@ $$
 **Existence and uniqueness.** A square system has exactly one solution for every $y$ if and only if $\det V \ne 0$, and
 
 $$
-\det V = \prod_{0 \le i < j \le n} (x_j - x_i),
+\det V = \prod_{0 \le i \lt  j \le n} (x_j - x_i),
 $$
 
 which is non-zero exactly when the nodes are **distinct**.
 
-- **Why this determinant (sketch):** as a function of $x_n$, $\det V$ is a polynomial of degree $n$ whose leading coefficient is the Vandermonde determinant of $x_0, \dots, x_{n-1}$. It vanishes when $x_n = x_i$ ($i < n$), since two rows are then equal. Hence $\det V(x_0, \dots, x_n) = \det V(x_0, \dots, x_{n-1})\prod_{i<n}(x_n - x_i)$; induction gives the product.
+- **Why this determinant (sketch):** as a function of $x_n$, $\det V$ is a polynomial of degree $n$ whose leading coefficient is the Vandermonde determinant of $x_0, \dots, x_{n-1}$. It vanishes when $x_n = x_i$ ($i \lt  n$), since two rows are then equal. Hence $\det V(x_0, \dots, x_n) = \det V(x_0, \dots, x_{n-1})\prod_{i\lt n}(x_n - x_i)$; induction gives the product.
 - **Without determinants:** if $Va = 0$, then $p(x) = \sum_k a_k x^k$ has $n + 1$ distinct roots. A non-zero polynomial of degree at most $n$ has at most $n$ roots, so $a = 0$: $V$ has a trivial null space and is invertible.
 
 **Example** (points $(0, 1), (1, 3), (2, 2)$):
@@ -87,7 +79,7 @@ Row 1 gives $a_0 = 1$; rows 2 and 3 give $a_1 + a_2 = 2$ and $2a_1 + 4a_2 = 1$, 
 
 For large $n$ the columns $x^k$ become nearly parallel on an interval, so $V$ is ill-conditioned and solving $Va = y$ loses accuracy; this is why the Lagrange (barycentric) and Newton forms are preferred in practice.
 
-### Lagrange interpolation
+### 2.2. Lagrange interpolation
 
 $$
 p(x) = \sum_{i=0}^{n} y_i\, L_i(x),
@@ -136,7 +128,7 @@ $$
 
 In both figures, (a) shows that each $L_i$ equals 1 at its own node and 0 at the others, and (b) shows that the scaled terms $y_i L_i(x)$ (dashed) add up to the interpolant (red).
 
-### Newton polynomials (divided differences)
+### 2.3. Newton polynomials (divided differences)
 
 $$
 p(x) = f[x_0] + f[x_0, x_1](x - x_0) + f[x_0, x_1, x_2](x - x_0)(x - x_1) + \cdots
@@ -162,7 +154,7 @@ Adding a point adds **one term**; earlier coefficients stay the same.
 
 | $x_i$ | $f[x_i]$ | 1st order | 2nd order | 3rd order |
 |---|---|---|---|---|
-| 0 | **1** | $\frac{3-1}{1-0} = $ **2** | $\frac{-1-2}{2-0} = $ **−3/2** | $\frac{5/6-(-3/2)}{4-0} = $ **7/12** |
+| 0 | **1** | $\frac{3-1}{1-0} = \mathbf{2}$ | $\frac{-1-2}{2-0} = \mathbf{-3/2}$ | $\frac{5/6-(-3/2)}{4-0} = \mathbf{7/12}$ |
 | 1 | 3 | $\frac{2-3}{2-1} = -1$ | $\frac{3/2-(-1)}{4-1} = 5/6$ | |
 | 2 | 2 | $\frac{5-2}{4-2} = 3/2$ | | |
 | 4 | 5 | | | |
@@ -180,7 +172,7 @@ $$
 ![Newton interpolation through (0, 1), (1, 3), (2, 2), (4, 5): (a) building up the polynomial one point at a time; (b) the four terms](newton_example.png)
 
 - **(a)** $p_0, p_1, p_2, p_3$ interpolate the first 1, 2, 3, 4 points. Each $p_k$ is $p_{k-1}$ plus one term, and keeps passing through the earlier points.
-- **(b)** The new term $f[x_0,\dots,x_k]\prod_{i<k}(x - x_i)$ is zero at all earlier nodes, so adding it does not disturb the earlier fit; its coefficient is chosen to hit the new point.
+- **(b)** The new term $f[x_0,\dots,x_k]\prod_{i\lt k}(x - x_i)$ is zero at all earlier nodes, so adding it does not disturb the earlier fit; its coefficient is chosen to hit the new point.
 
 #### Divided differences and derivatives
 
@@ -206,7 +198,7 @@ $$
 | $f[x_0, x_1]$ | $f'(a)$ |
 | $f[x_0, x_1, x_2]$ | $f''(a)/2!$ |
 | $f[x_0, \dots, x_k]$ | $f^{(k)}(a)/k!$ |
-| $\prod_{i<k}(x - x_i)$ | $(x - a)^k$ |
+| $\prod_{i\lt k}(x - x_i)$ | $(x - a)^k$ |
 
 - **Example 1 (polynomial).** For $f(x) = x^3$ at $0, 1, 2$: $f[0,1] = 1$, $f[1,2] = 7$, $f[0,1,2] = (7-1)/2 = 3 = f''(\xi)/2! = 3\xi$ with $\xi = 1$. Any third divided difference of $x^3$ equals $f'''/3! = 1$, its leading coefficient. Likewise, in the 4-point example above, $p$ is cubic with $p''' = 7/2$, and $f[0,1,2,4] = 7/12 = p'''/3!$.
 - **Example 2 (nodes coming together).** For $f(x) = e^x$ at $0, h, 2h$ (exact values $f'(0) = 1$, $f''(0)/2! = 0.5$):
@@ -218,7 +210,7 @@ $$
 | 0.01 | 1.005 | 0.505 |
 | $\to 0$ | $f'(0) = 1$ | $f''(0)/2! = 0.5$ |
 
-### Hermite interpolation
+### 2.4. Hermite interpolation
 
 Match **values and derivatives**: $p(x_i) = f(x_i)$ and $p'(x_i) = f'(x_i)$.
 
@@ -226,7 +218,7 @@ Match **values and derivatives**: $p(x_i) = f(x_i)$ and $p'(x_i) = f'(x_i)$.
 - Use Newton's form with **repeated nodes**: $f[x_i, x_i] = f'(x_i)$, and in general $f[x_i, \dots, x_i] = f^{(k)}(x_i)/k!$ ($k+1$ copies), the limits in 2.3.
 - Piecewise cubic Hermite interpolation is the building block of cubic splines (Section 6).
 
-### Taylor polynomials
+### 2.5. Taylor polynomials
 
 All conditions at **one point** $a$:
 
@@ -237,7 +229,7 @@ $$
 - This is Hermite interpolation with **one node repeated $n+1$ times**.
 - Very accurate near $a$, possibly poor far away (error in Section 5).
 
-## Illustrations
+## 3. Illustrations
 
 ![(a) interpolation vs regression; (b) Lagrange basis polynomials; (c) Runge's phenomenon; (d) Lagrange vs Hermite vs Taylor](interpolation_illustration.png)
 
@@ -246,7 +238,7 @@ $$
 - **(c) Runge's phenomenon:** for $f(x) = 1/(1 + 25x^2)$ with 11 equally spaced nodes, the degree-10 polynomial (red) oscillates near the ends; Chebyshev nodes (green dashed) or a cubic spline (blue dotted) follow the true curve (Section 5).
 - **(d) What is matched:** for $\sin x$, Lagrange matches values at 5 nodes, Hermite matches values and slopes at 3 nodes, and the degree-5 Taylor polynomial matches all derivatives at $x = 0$: excellent near 0, poor far away.
 
-## How they are related
+## 4. How they are related
 
 ```
 Interpolation (pass through data)
@@ -268,7 +260,7 @@ Interpolation (pass through data)
 
 All share the same error form (Section 5).
 
-## Interpolation error and Runge's phenomenon
+## 5. Interpolation error and Runge's phenomenon
 
 If $y_i = f(x_i)$ and $f$ has $n+1$ continuous derivatives, then for each $x$ there is a $\xi$ between the nodes and $x$ with
 
@@ -301,17 +293,17 @@ With equally spaced nodes, both factors of the error work against us (figures fo
 
 **Why splines also fix it (Section 6):** a spline keeps the degree low (e.g., cubic) and adds flexibility through more pieces. On each short interval, the error involves only a low-order derivative and a product of a few small distances, so it shrinks as the pieces get shorter.
 
-## Spline interpolation
+## 6. Spline interpolation
 
-### Idea
+### 6.1. Idea
 
 Section 5 shows that one high-degree polynomial through many nodes can oscillate badly. A **spline** uses **many low-degree pieces** instead: on each interval $[x_i, x_{i+1}]$ it is a polynomial of low degree, and the pieces are joined smoothly at the nodes (called **knots**).
 
-- Nodes $x_0 < x_1 < \cdots < x_n$, intervals of length $h_i = x_{i+1} - x_i$, $h = \max_i h_i$.
+- Nodes $x_0 \lt  x_1 \lt  \cdots \lt  x_n$, intervals of length $h_i = x_{i+1} - x_i$, $h = \max_i h_i$.
 - A spline of degree $d$ is a polynomial of degree $\le d$ on each interval, with continuous derivatives up to order $d - 1$ at the knots.
 - Flexibility comes from **more pieces**, not higher degree, so the error shrinks as $h \to 0$ for fixed $d$.
 
-### Linear spline
+### 6.2. Linear spline
 
 Join neighbouring points by straight lines: on $[x_i, x_{i+1}]$ it is the 2-point Lagrange interpolant of 2.2,
 
@@ -322,7 +314,7 @@ $$
 - Continuous, but the slope jumps at the knots (a "broken line").
 - Error from Section 5 with $n = 1$: $|f(x) - S(x)| \le \dfrac{h^2}{8}\max|f''|$, i.e. $O(h^2)$.
 
-### Cubic spline
+### 6.3. Cubic spline
 
 **Definition.** $S$ is a cubic polynomial $S_i$ on each $[x_i, x_{i+1}]$, with
 
@@ -400,11 +392,11 @@ Substituting into $S_i(x)$ (with $t = x - x_i$):
 
 ![Cubic spline: (a) cubic polynomial, linear spline and natural cubic spline through (0, 1), (1, 3), (2, 2), (4, 5); (b) second derivatives; (c) Runge example](spline_example.png)
 
-- **(a)** The linear spline has corners; the natural cubic spline is smooth and stays closer to the data than the cubic polynomial on $[2, 4]$.
+- **(a)** The linear spline has corners; the natural cubic spline is smooth and on $[2, 4]$ it dips much less than the cubic polynomial.
 - **(b)** $S''$ is continuous and piecewise linear through the $M_i$, with $M_0 = M_3 = 0$ (natural). The cubic polynomial's $p''$ is a single straight line.
 - **(c)** On the Runge function, the degree-10 polynomial oscillates near the ends, while the natural cubic spline through the same 11 nodes follows $f$ closely.
 
-### Properties
+### 6.4. Properties
 
 - **Error.** For smooth $f$ (clamped or not-a-knot conditions), $\max|f - S| \le \dfrac{5}{384}\,h^4 \max|f^{(4)}|$, i.e. $O(h^4)$: halving $h$ divides the error by about 16. The natural condition forces $S'' = 0$ at the ends, which adds an $O(h^2)$ error near the ends unless $f'' = 0$ there.
 - **Convergence on the Runge function** (equally spaced nodes on $[-1, 1]$, maximum error; compare the polynomial in Section 5):
@@ -418,14 +410,10 @@ Substituting into $S_i(x)$ (with $t = x - x_i$):
 | 40 | 0.014 | 0.00028 |
 | 80 | 0.0038 | 0.000016 |
 
-- **Minimum curvature.** Among all functions $g$ with continuous $g''$ that pass through the data, the natural cubic spline minimizes the total curvature
-  $$
-  \int_{x_0}^{x_n} g''(x)^2\,dx .
-  $$
-  This is the mathematical form of a draftsman's flexible ruler (the original "spline") bent through pins at the data points.
+- **Minimum curvature.** Among all functions $g$ with continuous $g''$ that pass through the data, the natural cubic spline minimizes the total curvature $\int_{x_0}^{x_n} g''(x)^2\,dx$. This is the mathematical form of a draftsman's flexible ruler (the original "spline") bent through pins at the data points.
 - **Local changes.** Changing one $y_i$ changes the whole spline, but the effect decays quickly away from $x_i$ (unlike a global polynomial, where it does not decay).
 
-### Relation to Hermite interpolation and to regression
+### 6.5. Relation to Hermite interpolation and to regression
 
 - **Piecewise cubic Hermite (2.4)** also uses one cubic per interval, but with **given** slopes $f'(x_i)$: the result is only $C^1$. The cubic spline instead **chooses** the slopes (through the tridiagonal system) so that $S''$ is also continuous: $C^2$, and no derivative data needed.
 - **Regression splines (ISLP 7.4):** use fewer knots than data points and fit by least squares, e.g. with the basis $1, x, x^2, x^3, (x - \xi_1)_+^3, \dots, (x - \xi_K)_+^3$ ($K + 4$ degrees of freedom). The interpolating spline is the special case with a knot at every data point and zero residuals.
