@@ -35,13 +35,25 @@ def first_heading(md_text: str, fallback: str) -> str:
     return m.group(1).strip() if m else fallback
 
 
+def first_sentence(md_text: str) -> str:
+    """First sentence of the first paragraph after the title (used on the home page)."""
+    body = re.sub(r"^#\s+.+$", "", md_text, count=1, flags=re.M)
+    for para in re.split(r"\n\s*\n", body):
+        para = para.strip()
+        if para and not para.startswith(("#", "!", "|", "<", "$$", "-", "```")):
+            para = re.sub(r"^\*\*[^*]+\*\*\s*", "", para)      # drop a leading bold label
+            m = re.search(r"^(.+?[.!?。])(\s|$)", para.replace("\n", " "))
+            return m.group(1) if m else para
+    return ""
+
+
 def folder_label(name: str) -> str:
     """'20261125' -> '2026-11-25'; other folder names are kept."""
     m = re.fullmatch(r"(\d{4})(\d{2})(\d{2})", name)
     return f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else name
 
 
-def pandoc(src_text: str, out_file: Path, title: str, root_rel: str, toc: bool, resource_dir: Path):
+def pandoc(src_text: str, out_file: Path, title: str, root_rel: str, toc: bool, resource_dir: Path, date: str = ""):
     cmd = [
         "pandoc", "-f", PANDOC_FROM, "-t", "html5", "--standalone",
         "--template", str(SITE / "template.html"),
@@ -54,7 +66,9 @@ def pandoc(src_text: str, out_file: Path, title: str, root_rel: str, toc: bool, 
         "-o", str(out_file),
     ]
     if toc:
-        cmd += ["--toc", "--toc-depth=3"]
+        cmd += ["--toc", "--toc-depth=3", "--metadata", "isnote=true"]
+    if date:
+        cmd += ["--metadata", f"date={date}"]
     subprocess.run(cmd, input=src_text.encode("utf-8"), check=True)
 
 
@@ -64,7 +78,7 @@ def main():
     OUT.mkdir()
     shutil.copy(SITE / "style.css", OUT / "style.css")
 
-    notes = []   # (folder, title, href)
+    notes = []   # (folder, title, href, summary)
     for path in sorted(ROOT.rglob("*")):
         if path.is_dir() or is_skipped(path):
             continue
@@ -77,8 +91,10 @@ def main():
             text = path.read_text(encoding="utf-8")
             title = first_heading(text, path.stem)
             root_rel = "../" * (len(rel.parts) - 1) or "./"
-            pandoc(text, dest.with_suffix(".html"), title, root_rel, toc=True, resource_dir=path.parent)
-            notes.append((rel.parent.as_posix(), title, rel.with_suffix(".html").as_posix()))
+            folder = rel.parent.as_posix()
+            pandoc(text, dest.with_suffix(".html"), title, root_rel, toc=True,
+                   resource_dir=path.parent, date=folder_label(folder) if folder != "." else "")
+            notes.append((folder, title, rel.with_suffix(".html").as_posix(), first_sentence(text)))
             print("page :", rel)
         else:
             shutil.copy2(path, dest)
@@ -86,14 +102,15 @@ def main():
     # Home page: README.md (if any) + list of notes, newest folder first
     readme = ROOT / "README.md"
     intro = readme.read_text(encoding="utf-8") if readme.exists() else f"# {SITE_TITLE}\n"
-    lines = [intro.rstrip(), "", "## Notes", ""]
-    for folder in sorted({n[0] for n in notes}, reverse=True):
-        lines.append(f"### {folder_label(folder) if folder != '.' else 'General'}")
-        lines.append("")
-        for f, title, href in notes:
-            if f == folder:
-                lines.append(f"- [{title}]({href})")
-        lines.append("")
+    lines = [intro.rstrip(), "", "## Notes", "", '<ul class="note-list">']
+    for folder, title, href, summary in sorted(notes, key=lambda n: (n[0], n[2]), reverse=True):
+        date = folder_label(folder) if folder != "." else ""
+        lines += ["<li>", f'<div class="note-date">{date}</div>', "<div>",
+                  f'<a class="note-title" href="{href}">{title}</a>']
+        if summary:   # Markdown inside the div, so math and bold still work
+            lines += ['<div class="note-summary">', "", summary, "", "</div>"]
+        lines += ["</div>", "</li>"]
+    lines.append("</ul>")
     pandoc("\n".join(lines), OUT / "index.html", SITE_TITLE, "./", toc=False, resource_dir=ROOT)
     (OUT / ".nojekyll").touch()
     print(f"done : {len(notes)} pages -> {OUT}")
