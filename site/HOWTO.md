@@ -25,7 +25,7 @@ The text of the root `README.md` is shown at the top of the home page.
 ## Writing Markdown
 
 - Math: `$...$` inline and `$$...$$` on their own lines (rendered with MathJax), the same syntax GitHub uses.
-- Type section numbers in the headings (e.g. `## 1. Introduction`); they are not added automatically.
+- Section numbers are added automatically on the website: write `## Introduction`, not `## 1. Introduction` (typed numbers are replaced).
 - Inside math, write `\lt` instead of `<` so GitHub does not mistake it for an HTML tag.
 - Links to other notes can point to the `.md` file; they are changed to `.html` on the website.
 
@@ -49,3 +49,4 @@ and open `_site/index.html` in a browser. The `_site/` folder is not committed.
 | `site/style.css` | Appearance: colours, fonts, layout (light and dark mode) |
 | `site/links.lua` | Rewrites `.md` links to `.html` |
 | `site/title.lua` | Moves the note title above the contents box |
+| `site/number.lua` | Numbers the sections automatically (1., 1.1., …) |
