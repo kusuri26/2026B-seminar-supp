@@ -48,3 +48,4 @@ and open `_site/index.html` in a browser. The `_site/` folder is not committed.
 | `site/template.html` | Page layout (top bar, contents, MathJax) |
 | `site/style.css` | Appearance: colours, fonts, layout (light and dark mode) |
 | `site/links.lua` | Rewrites `.md` links to `.html` |
+| `site/title.lua` | Moves the note title above the contents box |

@@ -26,20 +26,26 @@
 
 <div class="layout">
 $if(toc)$
-  <aside class="toc">
-    <details open>
-      <summary>Contents</summary>
-$table-of-contents$
-    </details>
-  </aside>
-$endif$
   <main class="content">
 $if(date)$
     <div class="eyebrow">$date$</div>
 $endif$
+    <h1 class="title">$pagetitle$</h1>
+  </main>
+  <nav class="toc" id="contents">
+    <details>
+      <summary>Contents</summary>
+$table-of-contents$
+    </details>
+  </nav>
+$endif$
+  <main class="content">
 $body$
   </main>
 </div>
+$if(toc)$
+<a class="to-top" href="#contents">↑ Top</a>
+$endif$
 
 <footer class="footer">
   <div class="footer-inner">
@@ -50,9 +56,11 @@ $endif$
   </div>
 </footer>
 <script>
-  // Contents: open beside the text on wide screens, collapsed on phones
-  if (window.matchMedia('(max-width: 1060px)').matches) {
-    document.querySelectorAll('.toc details').forEach(d => d.removeAttribute('open'));
+  // Show the "Top" button after scrolling down; it jumps back to the contents and opens them
+  const topBtn = document.querySelector('.to-top');
+  if (topBtn) {
+    addEventListener('scroll', () => topBtn.classList.toggle('show', scrollY > 600), { passive: true });
+    topBtn.addEventListener('click', () => document.querySelector('.toc details').setAttribute('open', ''));
   }
 </script>
 </body>

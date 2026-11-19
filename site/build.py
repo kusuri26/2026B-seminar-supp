@@ -66,7 +66,8 @@ def pandoc(src_text: str, out_file: Path, title: str, root_rel: str, toc: bool, 
         "-o", str(out_file),
     ]
     if toc:
-        cmd += ["--toc", "--toc-depth=3", "--metadata", "isnote=true"]
+        cmd += ["--toc", "--toc-depth=3", "--metadata", "isnote=true",
+                "--lua-filter", str(SITE / "title.lua")]
     if date:
         cmd += ["--metadata", f"date={date}"]
     subprocess.run(cmd, input=src_text.encode("utf-8"), check=True)
