@@ -113,8 +113,11 @@ blockquote {
   border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
 }
 blockquote p:last-child { margin-bottom: 0; }
-mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
-mjx-container:not([display="true"]) { display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden; vertical-align: bottom; }
+/* Display math: scroll sideways only if a formula is wider than the column */
+mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; padding: 6px 0; margin: 1em 0 !important; }
+/* Inline math: no scroll box, keep MathJax's own baseline alignment */
+mjx-container:not([display="true"]) { overflow: visible; }
+mjx-container svg { overflow: visible; }
 
 /* ---------- Home page ---------- */
 .home h1 { font-size: 2.6rem; margin-bottom: .4em; }
